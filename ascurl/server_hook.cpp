@@ -20,9 +20,14 @@ bool SC_SERVER_DECL CASEngineFuncs__SetHTTPRequestPostField(void* pthis SC_SERVE
 	return ASCURL_SetHTTPRequestPostField(request_id, str->c_str());
 }
 
-bool SC_SERVER_DECL CASEngineFuncs__SetHTTPRequestPostFieldEx(void* pthis SC_SERVER_DUMMYARG_NOCOMMA, int request_id, const CString *str, size_t size_of_postfield)
+bool SC_SERVER_DECL CASEngineFuncs__SetHTTPRequestPostFieldEx(void* pthis SC_SERVER_DUMMYARG_NOCOMMA, int request_id, const CString *str, int size_of_postfield)
 {
-	return ASCURL_SetHTTPRequestPostFieldEx(request_id, str->c_str(), size_of_postfield);
+	if (size_of_postfield < 0 || (size_t)size_of_postfield > str->length())
+	{
+		return false;
+	}
+
+	return ASCURL_SetHTTPRequestPostFieldEx(request_id, str->c_str(), (size_t)size_of_postfield);
 }
 
 bool SC_SERVER_DECL CASEngineFuncs__AppendHTTPRequestHeader(void* pthis SC_SERVER_DUMMYARG_NOCOMMA, int request_id, const CString *str)
