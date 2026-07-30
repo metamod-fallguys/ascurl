@@ -46,7 +46,7 @@ g_EngineFuncs.SetHTTPRequestPostField(request_id, "xyz=114514");//post_fields mu
 ```
 //bool g_EngineFuncs.SetHTTPRequestPostFieldEx(int request_id, const string& in post_fields, int sizeof_post_fields )
 
-g_EngineFuncs.SetHTTPRequestPostFieldEx(request_id, "xyz=114514");//post_fields must be urlencoded before passed to SetHTTPRequestPostField , sizeof_post_fields is used as size of post_fields. post_fields.length() is ignored
+g_EngineFuncs.SetHTTPRequestPostFieldEx(request_id, "xyz=114514", 10);//sizeof_post_fields must be non-negative and no greater than post_fields.length()
 ```
 
 ## Append request header to http request

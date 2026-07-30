@@ -7,8 +7,9 @@
 #undef read
 #undef write
 
-#include <sstream>		// of course
+#include <limits>
 #include <map>		// of course
+#include <sstream>		// of course
 #include <vector>		// of course
 
 #include "enginedef.h"
@@ -41,10 +42,20 @@ static int g_running_handles = 0;
 static size_t read_stream_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
 	auto stream = (std::stringstream *)userdata;
+	if (size != 0 && nmemb > (std::numeric_limits<size_t>::max)() / size)
+	{
+		return CURL_READFUNC_ABORT;
+	}
 
-	stream->read(ptr, size * nmemb);
+	auto requested_size = size * nmemb;
+	if (requested_size > (size_t)(std::numeric_limits<std::streamsize>::max)())
+	{
+		return CURL_READFUNC_ABORT;
+	}
 
-	return size * nmemb;
+	stream->read(ptr, (std::streamsize)requested_size);
+
+	return (size_t)stream->gcount();
 }
 
 static size_t write_stream_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
@@ -126,7 +137,7 @@ public:
 	}
 	virtual void SetPostField(const char *postfield, size_t size_of_postfield)
 	{
-		g_pfn_curl_easy_setopt(m_easy_handle, CURLOPT_POSTFIELDSIZE, size_of_postfield);
+		g_pfn_curl_easy_setopt(m_easy_handle, CURLOPT_POSTFIELDSIZE_LARGE, (curl_off_t)size_of_postfield);
 		g_pfn_curl_easy_setopt(m_easy_handle, CURLOPT_COPYPOSTFIELDS, postfield);
 	}
 	virtual void AppendHeader(const char *headerfield)
@@ -176,7 +187,7 @@ public:
 			&m_form_last,
 			CURLFORM_COPYNAME, formname,
 			CURLFORM_COPYCONTENTS, blob,
-			CURLFORM_CONTENTLEN, size_of_blob,
+			CURLFORM_CONTENTLEN, (curl_off_t)size_of_blob,
 			CURLFORM_END);
 	}
 	virtual void AppendFormStream(const char *formname, const void *blob, size_t size_of_blob)
@@ -190,7 +201,7 @@ public:
 			&m_form_last,
 			CURLFORM_COPYNAME, formname,
 			CURLFORM_STREAM, &m_readstream,
-			CURLFORM_CONTENTLEN, size_of_blob,
+			CURLFORM_CONTENTLEN, (curl_off_t)size_of_blob,
 			CURLFORM_END);
 	}
 	virtual void SendRequest()
