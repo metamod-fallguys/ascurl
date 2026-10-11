@@ -30,5 +30,6 @@ if(WIN32)
     target_compile_definitions(ascurl PRIVATE ASCURL_EXPORTS)
 endif()
 target_include_directories(ascurl PRIVATE thirdparty/curl/include/curl thirdparty/openssl/include)
+mmfg_assign_source_groups(ascurl)
 
 include(cmake/FormatValidation.cmake)
